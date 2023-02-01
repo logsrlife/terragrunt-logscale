@@ -105,13 +105,14 @@ inputs = {
 
   release          = "ops"
   chart            = "logscale"
-  chart_version    = "v6.0.0-next.3"
+  chart_version    = "v6.0.0-next.14"
   namespace        = "${local.name}-${local.codename}"
   create_namespace = false
   project          = "${local.name}-${local.codename}"
 
 
   values = yamldecode(<<EOF
+platform: aws
 humio:
   # External URI
   fqdn: logscale-ops.${local.domain_name}
@@ -138,10 +139,11 @@ humio:
     manager: strimzi
     prefixEnable: true
     strimziCluster: "ops-logscale"
-    externalKafkaHostname: "ops-logscale-kafka-bootstrap:9092"
+    # externalKafkaHostname: "ops-logscale-kafka-bootstrap:9092"
 
   #Image is shared by all node pools
   image:
+    # tag: 1.75.0--SNAPSHOT--build-353635--SHA-96e5fc2254e11bf9a10b24b749e4e5b197955607
     tag: 1.70.0
 
   # Primary Node pool used for digest/storage
@@ -155,10 +157,6 @@ humio:
       memory: 2Gi
       cpu: 1
 
-  podAnnotations:
-    "config.linkerd.io/skip-outbound-ports": "443"
-    "instrumentation.opentelemetry.io/inject-java": "true"
-    "instrumentation.opentelemetry.io/container-names": "humio"
   serviceAccount:
     name: "logscale-ops"
     annotations:
@@ -310,6 +308,12 @@ humio:
                     operator: In
                     values: ["ops-logscale-http-only"]
               topologyKey: "kubernetes.io/hostname"
+otel:  
+  components:
+    app: true
+    cluster: true
+    nodes: true
+    serviceaccount: true
 EOF
   )
 

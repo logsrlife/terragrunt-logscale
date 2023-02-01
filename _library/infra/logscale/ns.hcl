@@ -51,7 +51,10 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../../../eks-addons/"
+    "${get_terragrunt_dir()}/../../../eks-addons/",
+    "${get_terragrunt_dir()}/../../logscale-operator/helm/",
+    "${get_terragrunt_dir()}/../../otel-operator/helm/",
+    "${get_terragrunt_dir()}/../../strimzi/helm/"
   ]
 }
 
