@@ -144,7 +144,7 @@ humio:
   #Image is shared by all node pools
   image:
     # tag: 1.75.0--SNAPSHOT--build-353635--SHA-96e5fc2254e11bf9a10b24b749e4e5b197955607
-    tag: 1.70.0
+    tag: 1.70.1
 
   # Primary Node pool used for digest/storage
   nodeCount: 3
