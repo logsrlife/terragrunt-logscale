@@ -46,11 +46,11 @@ locals {
   aws_region   = local.region_vars.locals.aws_region
 }
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../../eks/"
+  config_path = "${get_terragrunt_dir()}/../../../../eks/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../ns/",
+    "${get_terragrunt_dir()}/../../ns/",
   ]
 }
 # ---------------------------------------------------------------------------------------------------------------------

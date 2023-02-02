@@ -57,20 +57,20 @@ locals {
 
 
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../../eks/"
+  config_path = "${get_terragrunt_dir()}/../../../../eks/"
 }
 dependency "acm_ui" {
-  config_path = "${get_terragrunt_dir()}/../../../acm-ui/"
+  config_path = "${get_terragrunt_dir()}/../../../../acm-ui/"
 }
 dependency "bucket" {
   config_path = "${get_terragrunt_dir()}/../bucket/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../../../eks-addons/",
-    "${get_terragrunt_dir()}/../../argocd/helm/",
-    "${get_terragrunt_dir()}/../ns/",
-    "${get_terragrunt_dir()}/../project/"
+    "${get_terragrunt_dir()}/../../../../eks-addons/",
+    "${get_terragrunt_dir()}/../../../argocd/helm/",
+    "${get_terragrunt_dir()}/../../ns/",
+    "${get_terragrunt_dir()}/../../project/"
   ]
 }
 generate "provider" {
@@ -105,7 +105,7 @@ inputs = {
 
   release          = "ops"
   chart            = "logscale"
-  chart_version    = "v6.0.0-next.14"
+  chart_version    = "v6.0.0-next.16"
   namespace        = "${local.name}-${local.codename}"
   create_namespace = false
   project          = "${local.name}-${local.codename}"
@@ -144,18 +144,18 @@ humio:
   #Image is shared by all node pools
   image:
     # tag: 1.75.0--SNAPSHOT--build-353635--SHA-96e5fc2254e11bf9a10b24b749e4e5b197955607
-    tag: 1.70.1
+    tag: 1.70.0
 
   # Primary Node pool used for digest/storage
   nodeCount: 3
   #In general for these node requests and limits should match
   resources:
     requests:
-      memory: 2Gi
-      cpu: 1
+      memory: 4Gi
+      cpu: 2
     limits:
-      memory: 2Gi
-      cpu: 1
+      memory: 4Gi
+      cpu: 2
 
   serviceAccount:
     name: "logscale-ops"
@@ -180,10 +180,17 @@ humio:
                 values: ["amd64"]
               - key: "kubernetes.io/os"
                 operator: "In"
+                values: ["linux"]  
+              - key: "workloadClass"
+                operator: "In"
+                values: ["compute"]      
+          - matchExpressions:
+              - key: "kubernetes.io/arch"
+                operator: "In"
+                values: ["amd64"]
+              - key: "kubernetes.io/os"
+                operator: "In"
                 values: ["linux"]
-              # - key: "kubernetes.azure.com/agentpool"
-              #   operator: "In"
-              #   values: ["nvme"]
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
@@ -233,12 +240,16 @@ humio:
       nodeCount: 2
       resources:
         limits:
-          cpu: "1"
-          memory: 2Gi
+          cpu: "2"
+          memory: 4Gi
         requests:
-          cpu: "1"
-          memory: 2Gi
+          cpu: "2"
+          memory: 4Gi
       tolerations:
+        - key: "workloadClass"
+          operator: "Equal"
+          value: "compute"
+          effect: "NoSchedule"      
         - key: "workloadClass"
           operator: "Equal"
           value: "nvme"
@@ -247,6 +258,16 @@ humio:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
+              - matchExpressions:
+                  - key: "kubernetes.io/arch"
+                    operator: "In"
+                    values: ["amd64"]
+                  - key: "kubernetes.io/os"
+                    operator: "In"
+                    values: ["linux"]  
+                  - key: "workloadClass"
+                    operator: "In"
+                    values: ["general","compute"]               
               - matchExpressions:
                   - key: "kubernetes.io/arch"
                     operator: "In"
@@ -273,12 +294,16 @@ humio:
       nodeCount: 2
       resources:
         limits:
-          cpu: "1"
-          memory: 2Gi
+          cpu: "2"
+          memory: 4Gi
         requests:
-          cpu: "1"
-          memory: 2Gi
+          cpu: "2"
+          memory: 4Gi
       tolerations:
+        - key: "workloadClass"
+          operator: "Equal"
+          value: "compute"
+          effect: "NoSchedule"      
         - key: "workloadClass"
           operator: "Equal"
           value: "nvme"
@@ -286,7 +311,17 @@ humio:
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
+            nodeSelectorTerms:            
+              - matchExpressions:
+                  - key: "kubernetes.io/arch"
+                    operator: "In"
+                    values: ["amd64"]
+                  - key: "kubernetes.io/os"
+                    operator: "In"
+                    values: ["linux"]  
+                  - key: "workloadClass"
+                    operator: "In"
+                    values: ["general","compute"]               
               - matchExpressions:
                   - key: "kubernetes.io/arch"
                     operator: "In"
@@ -308,8 +343,177 @@ humio:
                     operator: In
                     values: ["ops-logscale-http-only"]
               topologyKey: "kubernetes.io/hostname"
+kafka:
+  allowAutoCreate: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "kubernetes.io/arch"
+                operator: "In"
+                values: ["arm64"]
+              - key: "kubernetes.io/os"
+                operator: "In"
+                values: ["linux"]
+              - key: "workloadClass"
+                operator: "In"
+                values: ["compute"]                 
+          # - matchExpressions:
+          #     - key: "kubernetes.io/arch"
+          #       operator: "In"
+          #       values: ["amd64"]
+          #     - key: "kubernetes.io/os"
+          #       operator: "In"
+          #       values: ["linux"]  
+          #     - key: "workloadClass"
+          #       operator: "In"
+          #       values: ["compute"]           
+          - matchExpressions:
+              - key: "kubernetes.io/arch"
+                operator: "In"
+                values: ["arm64"]
+              - key: "kubernetes.io/os"
+                operator: "In"
+                values: ["linux"]
+          # - matchExpressions:
+          #     - key: "kubernetes.io/arch"
+          #       operator: "In"
+          #       values: ["amd64"]
+          #     - key: "kubernetes.io/os"
+          #       operator: "In"
+          #       values: ["linux"]                
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: strimzi.io/name
+                operator: In
+                values:
+                  - "ops-kafka-kafkacluster-kafka"
+          topologyKey: kubernetes.io/hostname
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+          - key: strimzi.io/name
+            operator: In
+            values:
+              - "ops-kafka-kafkacluster-kafka"
+  tolerations:
+    - key: "workloadClass"
+      operator: "Equal"
+      value: "compute"
+      effect: "NoSchedule"      
+
+  # At least 3 replicas are required the number of replicas must be at east 3 and evenly
+  # divisible by number of zones
+  # The Following Configuration is valid for approximatly 1TB/day
+  # ref: https://library.humio.com/humio-server/installation-prep.html#installation-prep-rec
+  replicas: 3
+  resources:
+    requests:
+      # Increase the memory as needed to support more than 5/TB day
+      memory: 4Gi
+      #Note the following resources are expected to support 1-3 TB/Day however
+      # storage is sized for 1TB/day increase the storage to match the expected load
+      cpu: 2
+    limits:
+      memory: 4Gi
+      cpu: 2
+  #(total ingest uncompressed per day / 5 ) * 3 / ReplicaCount
+  # ReplicaCount must be odd and greater than 3 should be divisible by AZ
+  # Example: 1 TB/Day '1/5*3/3=205' 3 Replcias may not survive a zone failure at peak
+  # Example:  1 TB/Day '1/5*3/6=103' 6 ensures at least one node per zone
+  # 100 GB should be the smallest disk used for Kafka this may result in some waste
+  storage:
+    type: persistent-claim
+    size: 150Gi
+    deleteClaim: true
+    #Must be SSD or NVME like storage IOPs is the primary node constraint
+    class: ebs-gp3-enc
+zookeeper:
+  replicas: 3
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "kubernetes.io/arch"
+                operator: "In"
+                values: ["arm64"]
+              - key: "kubernetes.io/os"
+                operator: "In"
+                values: ["linux"]
+              - key: "workloadClass"
+                operator: "In"
+                values: ["general","compute"]                 
+          # - matchExpressions:
+          #     - key: "kubernetes.io/arch"
+          #       operator: "In"
+          #       values: ["amd64"]
+          #     - key: "kubernetes.io/os"
+          #       operator: "In"
+          #       values: ["linux"]  
+          #     - key: "workloadClass"
+          #       operator: "In"
+          #       values: ["general","compute"]                 
+          - matchExpressions:
+              - key: "kubernetes.io/arch"
+                operator: "In"
+                values: ["arm64"]
+              - key: "kubernetes.io/os"
+                operator: "In"
+                values: ["linux"]
+          # - matchExpressions:
+          #     - key: "kubernetes.io/arch"
+          #       operator: "In"
+          #       values: ["amd64"]
+          #     - key: "kubernetes.io/os"
+          #       operator: "In"
+          #       values: ["linux"]    
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: strimzi.io/name
+                operator: In
+                values:
+                  - "ops-kafka-kafkacluster-zookeeper"
+          topologyKey: kubernetes.io/hostname
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+          - key: strimzi.io/name
+            operator: In
+            values:
+              - "ops-kafka-kafkacluster-zookeeper"
+  tolerations:
+    - key: "workloadClass"
+      operator: "Equal"
+      value: "compute"
+      effect: "NoSchedule"      
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: "250m"
+    limits:
+      memory: 2Gi
+      cpu: "1"
+  storage:
+    deleteClaim: true
+    type: persistent-claim
+    size: 10Gi
+    class: ebs-gp3-enc
+
 otel:  
   components:
+    inject: true
     app: true
     cluster: true
     nodes: true
@@ -317,4 +521,13 @@ otel:
 EOF
   )
 
+ignoreDifferences = [
+    {
+      group = "kafka.strimzi.io"
+      kind  = "KafkaRebalance"
+      jsonPointers = [
+        "/metadata/annotations/strimzi.io/rebalance"
+      ]
+    }
+  ]
 }
