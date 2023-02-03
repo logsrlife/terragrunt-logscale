@@ -103,7 +103,7 @@ inputs = {
 
   repository = "https://logscale-contrib.github.io/helm-logscale"
 
-  release          =  local.codename
+  release          = local.codename
   chart            = "logscale"
   chart_version    = "v6.0.0-next.20"
   namespace        = "${local.name}-${local.codename}"
@@ -221,7 +221,7 @@ humio:
         "alb.ingress.kubernetes.io/scheme": "internet-facing"
         "alb.ingress.kubernetes.io/target-type": "ip"
         "alb.ingress.kubernetes.io/group.name": "logscale-${local.env}"
-        "external-dns.alpha.kubernetes.io/hostname": "logscale-${local.codename}.${local.domain_name}"
+        "external-dns.alpha.kubernetes.io/hostname": "logscale-ops.${local.domain_name}"
 
     inputs:
       enabled: true
@@ -514,11 +514,7 @@ zookeeper:
 otel:  
   components:
     inject: true
-    app: true
-    cluster: true
-    nodes: true
-    logScaleConfig: true
-    serviceaccount: true
+    otlpURI: http://ops-logscale-app-collector-headless.logscale-ops.svc.cluster.local:4317
 EOF
   )
 
