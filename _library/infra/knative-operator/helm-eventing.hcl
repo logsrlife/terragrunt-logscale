@@ -53,12 +53,12 @@ locals {
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../../eks/"
 }
-dependency "acm_ui" {
-  config_path = "${get_terragrunt_dir()}/../../../acm-ui/"
-}
 dependencies {
   paths = [
     "${get_terragrunt_dir()}/../ns/",
+    "${get_terragrunt_dir()}/../ns-eventing/",
+    "${get_terragrunt_dir()}/../helm/",
+    "${get_terragrunt_dir()}/../helm-serving/",
     "${get_terragrunt_dir()}/../../../eks-addons/"
   ]
 }
@@ -90,21 +90,22 @@ EOF
 inputs = {
 
 
-  repository = "https://humio.github.io/humio-operator"
-  namespace  = "logscale-operator"
-  app = {
+  repository = "https://logscale-contrib.github.io/helm-knative-deployment"
+  namespace  = "knative-eventing"
+  app = { 
     name             = "cw"
-    chart            = "humio-operator"
-    version          = "0.17.*"
+    chart            = "knative-deployment"
+    version          = "1.0.2"
     create_namespace = false
     deploy           = 1
   }
-  values = [<<EOF
-prometheus:
-  serviceMonitor:
-    enabled: true  
 
+  values = [<<EOF
+knative:
+  eventing:
+    enabled: true
+    source:
+      kafka: true
 EOF    
   ]
-
 }

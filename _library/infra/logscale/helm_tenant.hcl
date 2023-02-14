@@ -105,7 +105,7 @@ inputs = {
 
   release          = local.codename
   chart            = "logscale"
-  chart_version    = "v6.0.0-next.20"
+  chart_version    = "v6.0.0-next.25"
   namespace        = "${local.name}-${local.codename}"
   create_namespace = false
   project          = "${local.name}-${local.codename}"
@@ -144,7 +144,7 @@ humio:
   #Image is shared by all node pools
   image:
     # tag: 1.75.0--SNAPSHOT--build-353635--SHA-96e5fc2254e11bf9a10b24b749e4e5b197955607
-    tag: 1.70.0
+    tag: 1.76.0--SNAPSHOT--build-359970--SHA-23a8fb2bc34e2dac49fedc09642a1b41013238f6
 
   # Primary Node pool used for digest/storage
   nodeCount: 3
@@ -387,10 +387,10 @@ kafka:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
             matchExpressions:
-              - key: strimzi.io/name
+              - key: strimzi.io/component-type
                 operator: In
                 values:
-                  - "${local.codename}-kafka-kafkacluster-kafka"
+                  - "zookeeper"
           topologyKey: kubernetes.io/hostname
   topologySpreadConstraints:
     - maxSkew: 1
@@ -401,7 +401,7 @@ kafka:
           - key: strimzi.io/name
             operator: In
             values:
-              - "${local.codename}-kafka-kafkacluster-kafka"
+              - "${local.codename}-logscale-kafka"
   tolerations:
     - key: "workloadClass"
       operator: "Equal"
@@ -478,10 +478,10 @@ zookeeper:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
             matchExpressions:
-              - key: strimzi.io/name
+              - key: strimzi.io/component-type
                 operator: In
                 values:
-                  - "${local.codename}-kafka-kafkacluster-zookeeper"
+                  - "kafka"
           topologyKey: kubernetes.io/hostname
   topologySpreadConstraints:
     - maxSkew: 1
@@ -492,7 +492,7 @@ zookeeper:
           - key: strimzi.io/name
             operator: In
             values:
-              - "${local.codename}-kafka-kafkacluster-zookeeper"
+              - "${local.codename}-logscale-zookeeper"
   tolerations:
     - key: "workloadClass"
       operator: "Equal"
