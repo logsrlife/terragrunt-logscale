@@ -78,7 +78,7 @@ EOF
 inputs = {
   name = "knative-operator"
   #disabled for now due to defect in operator manifest
-  # annotations = {
-  #   "linkerd.io/inject" = "enabled"
-  # }
+  annotations = {
+    "linkerd.io/inject" = "enabled"
+  }
 }

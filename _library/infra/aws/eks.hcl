@@ -19,7 +19,7 @@ terraform {
 locals {
   source_module = {
     base_url = "git::git@github.com:logscale-contrib/tf-self-managed-logscale-aws-k8s-cluster.git"
-    version  = "?ref=v3.5.5"
+    version  = "?ref=v3.6.0"
   }
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))

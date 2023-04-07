@@ -94,13 +94,14 @@ inputs = {
   app = { 
     name             = "cw"
     chart            = "triggermesh"
-    version          = "0.6.2"
+    version          = "0.7.0"
     create_namespace = false
     deploy           = 1
   }
 
   values = [<<EOF
-
+# image:
+#   tag: 5c2326b5159a98af5564942d1de8697f34652a85
 EOF    
   ]
 }

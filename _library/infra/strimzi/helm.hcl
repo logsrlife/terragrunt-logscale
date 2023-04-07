@@ -94,7 +94,7 @@ inputs = {
   app = {
     name             = "cw"
     chart            = "strimzi-kafka-operator"
-    version          = "0.33.*"
+    version          = "0.34.*"
     create_namespace = false
     deploy           = 1
   }
@@ -105,11 +105,11 @@ inputs = {
 watchAnyNamespace: true
 resources:
   requests:
-    cpu: 1000m
+    cpu: 1
     memory: 256Mi
   limits:
-    cpu: 1000m
-    memory: 256Mi
+    cpu: 1
+    memory: 512Mi
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone

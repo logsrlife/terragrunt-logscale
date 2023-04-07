@@ -95,7 +95,7 @@ inputs = {
   app = {
     name             = "ops"
     chart            = "kube-prometheus-stack"
-    version          = "41.5.*"
+    version          = "45.9.1"
     create_namespace = false
     deploy           = 1
   }

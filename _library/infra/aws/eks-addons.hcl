@@ -60,7 +60,7 @@ EOF
 locals {
   source_module = {
     base_url = "git::git@github.com:logscale-contrib/terraform-self-managed-logscale-aws-k8s-cluster-addons.git"
-    version  = "?ref=v1.5.10"
+    version  = "?ref=v1.6.3"
   }
   # Automatically load environment-level variables
   environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))

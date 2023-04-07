@@ -32,4 +32,9 @@ locals {
     base_url = "git::git@github.com:logscale-contrib/terraform-aws-logscale-bucket-with-iam.git"
     version  = "?ref=v1.4.1"
   }
+
+  azure_rg = {
+    base_url = "git::git@github.com:logscale-contrib/teraform-self-managed-logscale-azure-resource-group.git"
+    version  = "?ref=v1.0.4"
+  }  
 }

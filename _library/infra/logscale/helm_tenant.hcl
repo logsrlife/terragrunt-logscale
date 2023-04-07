@@ -105,7 +105,8 @@ inputs = {
 
   release          = local.codename
   chart            = "logscale"
-  chart_version    = "v6.0.0-next.25"
+  # chart_version    = "v6.0.0"
+  chart_version    = "v7.0.0-next.9"
   namespace        = "${local.name}-${local.codename}"
   create_namespace = false
   project          = "${local.name}-${local.codename}"
@@ -127,10 +128,16 @@ humio:
     idpCertificate: "${base64encode(local.humio_sso_idpCertificate)}"
     signOnUrl: "${local.humio_sso_signOnUrl}"
     entityID: "${local.humio_sso_entityID}"
+  extraENV:
+    - name: MAX_SERIES_LIMIT
+      value: "1000"
+    - name: ENABLE_IOC_SERVICE
+      value: "false"
 
   # Object Storage Settings
-  s3mode: aws
+  
   buckets:
+    type: aws
     region: ${local.aws_region}
     storage: ${dependency.bucket.outputs.s3_bucket_id}
 
@@ -144,18 +151,26 @@ humio:
   #Image is shared by all node pools
   image:
     # tag: 1.75.0--SNAPSHOT--build-353635--SHA-96e5fc2254e11bf9a10b24b749e4e5b197955607
-    tag: 1.76.0--SNAPSHOT--build-359970--SHA-23a8fb2bc34e2dac49fedc09642a1b41013238f6
-
+    # tag: 1.76.0--SNAPSHOT--build-359970--SHA-23a8fb2bc34e2dac49fedc09642a1b41013238f6
+    # tag: 1.77.0--SNAPSHOT--build-360968--SHA-2b8b9fb62ade3dbac30c4352716632e7fec92cb0
+    # tag: 1.78.0--SNAPSHOT--build-371116--SHA-82be774e353aeebd8e5cbfa88aef55cb8f5960a0
+    # tag: 1.79.0--SNAPSHOT--build-381031--SHA-3d907a8c1c8e9f1eab28ada26f6cc0f83b6c80d3
+    # tag: 1.82.0--SNAPSHOT--build-392060--SHA-3d151632092e4c2a554df0d24147b749219def02
+    tag: 1.85.0--SNAPSHOT--build-404564--SHA-c2b36c72f3da2c2d6f6cc4f711a0f5210f652e71
   # Primary Node pool used for digest/storage
   nodeCount: 3
   #In general for these node requests and limits should match
   resources:
     requests:
-      memory: 4Gi
+      memory: 8Gi
       cpu: 2
     limits:
-      memory: 4Gi
-      cpu: 2
+      memory: 8Gi
+      cpu: 4
+
+  digestPartitionsCount: 24
+  storagePartitionsCount: 6
+  targetReplicationFactor: 2
 
   serviceAccount:
     name: "logscale-${local.codename}"
@@ -202,6 +217,16 @@ humio:
                 operator: In
                 values: ["${local.codename}-logscale"]
           topologyKey: "kubernetes.io/hostname"
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+          - key: humio.com/node-pool
+            operator: In
+            values:
+              - "${local.codename}-logscale"          
   dataVolumePersistentVolumeClaimSpecTemplate:
     accessModes: ["ReadWriteOnce"]
     resources:
@@ -221,6 +246,7 @@ humio:
         "alb.ingress.kubernetes.io/scheme": "internet-facing"
         "alb.ingress.kubernetes.io/target-type": "ip"
         "alb.ingress.kubernetes.io/group.name": "logscale-${local.env}"
+        alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true                
         "external-dns.alpha.kubernetes.io/hostname": "logscale-ops.${local.domain_name}"
 
     inputs:
@@ -234,14 +260,15 @@ humio:
           "alb.ingress.kubernetes.io/scheme"          : "internet-facing"
           "alb.ingress.kubernetes.io/target-type"     : "ip"
           "alb.ingress.kubernetes.io/group.name"      : "logscale-${local.env}"
+          alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true                
           "external-dns.alpha.kubernetes.io/hostname" : "logscale-${local.codename}-inputs.${local.domain_name}"
   nodepools:
     ingest:
-      nodeCount: 2
+      nodeCount: 3
       resources:
         limits:
           cpu: "2"
-          memory: 4Gi
+          memory: 6Gi
         requests:
           cpu: "2"
           memory: 4Gi
@@ -289,13 +316,22 @@ humio:
                     operator: In
                     values: ["${local.codename}-logscale-ingest-only"]
               topologyKey: "kubernetes.io/hostname"
-
+      topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchExpressions:
+                  - key: humio.com/node-pool
+                    operator: In
+                    values:
+                      - "${local.codename}-logscale-ingest-only"   
     ui:
-      nodeCount: 2
+      nodeCount: 3
       resources:
         limits:
           cpu: "2"
-          memory: 4Gi
+          memory: 6Gi
         requests:
           cpu: "2"
           memory: 4Gi
@@ -343,6 +379,16 @@ humio:
                     operator: In
                     values: ["${local.codename}-logscale-http-only"]
               topologyKey: "kubernetes.io/hostname"
+      topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: topology.kubernetes.io/zone
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchExpressions:
+                  - key: humio.com/node-pool
+                    operator: In
+                    values:
+                      - "${local.codename}-logscale-http-only"                 
 kafka:
   allowAutoCreate: false
   affinity:
