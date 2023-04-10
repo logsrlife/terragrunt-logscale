@@ -12,7 +12,6 @@
 terraform {
   source = "${local.source_module.base_url}${local.source_module.version}"
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -26,7 +25,7 @@ locals {
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.helm_release
+  source_module = local.module_vars.locals.k8s_ns
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -42,41 +41,31 @@ locals {
   account_id   = local.account_vars.locals.aws_account_id
   aws_region   = local.region_vars.locals.aws_region
 
-  dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
-  domain_name = local.dns.locals.domain_name
-
-  host_name = "argocd"
 
 }
-
 
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../../../eks/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../ns/",
-    "${get_terragrunt_dir()}/../ns-triggermesh/",
-    "${get_terragrunt_dir()}/../helm-serving/",
     "${get_terragrunt_dir()}/../../../eks-addons/"
   ]
 }
+
 generate "provider" {
   path      = "provider_k8s.tf"
   if_exists = "overwrite_terragrunt"
   contents  = <<EOF
-
-provider "helm" {
-  kubernetes {
-    host                   = "${dependency.eks.outputs.eks_endpoint}"
-    cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-
-    exec {
-      api_version = "client.authentication.k8s.io/v1"
-      command     = "aws"
-      # This requires the awscli to be installed locally where Terraform is executed
-      args = ["eks", "get-token", "--cluster-name", "${dependency.eks.outputs.eks_cluster_name}"]
-    }
+provider "kubernetes" {
+  
+  host                   = "${dependency.eks.outputs.eks_endpoint}"
+  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
+  exec {
+    api_version = "client.authentication.k8s.io/v1"
+    command     = "aws"
+    # This requires the awscli to be installed locally where Terraform is executed
+    args = ["eks", "get-token", "--cluster-name", "${dependency.eks.outputs.eks_cluster_name}"]
   }
 }
 EOF
@@ -87,21 +76,9 @@ EOF
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-
-
-  repository = "https://storage.googleapis.com/triggermesh-charts"
-  namespace  = "triggermesh"
-  app = { 
-    name             = "cw"
-    chart            = "triggermesh"
-    version          = "0.7.2"
-    create_namespace = false
-    deploy           = 1
-  }
-
-  values = [<<EOF
-# image:
-#   tag: 5c2326b5159a98af5564942d1de8697f34652a85
-EOF    
-  ]
+  name = "redis-operator"
+  #disabled for now due to defect in operator manifest
+  # annotations = {
+  #   "linkerd.io/inject" = "enabled"
+  # }
 }

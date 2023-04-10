@@ -21,12 +21,14 @@ locals {
   environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
   # Extract out common variables for reuse
-  env = local.environment_vars.locals.environment
+  env      = local.environment_vars.locals.environment
+  name     = local.environment_vars.locals.name
+  codename = local.environment_vars.locals.codename
 
   # Expose the base source URL so different versions of the module can be deployed in different environments. This will
   # be used to construct the terraform block in the child terragrunt configurations.
   module_vars   = read_terragrunt_config(find_in_parent_folders("modules.hcl"))
-  source_module = local.module_vars.locals.helm_release
+  source_module = local.module_vars.locals.k8s_helm
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
@@ -45,20 +47,30 @@ locals {
   dns         = read_terragrunt_config(find_in_parent_folders("dns.hcl"))
   domain_name = local.dns.locals.domain_name
 
-  host_name = "argocd"
-
+  humio                    = read_terragrunt_config(find_in_parent_folders("humio.hcl"))
+  humio_rootUser           = local.humio.locals.humio_rootUser
+  humio_license            = local.humio.locals.humio_license
+  humio_sso_idpCertificate = local.humio.locals.humio_sso_idpCertificate
+  humio_sso_signOnUrl      = local.humio.locals.humio_sso_signOnUrl
+  humio_sso_entityID       = local.humio.locals.humio_sso_entityID
 }
 
 
 dependency "eks" {
-  config_path = "${get_terragrunt_dir()}/../../../eks/"
+  config_path = "${get_terragrunt_dir()}/../../../../eks/"
+}
+dependency "acm_ui" {
+  config_path = "${get_terragrunt_dir()}/../../../../acm-ui/"
+}
+dependency "bucket" {
+  config_path = "${get_terragrunt_dir()}/../bucket/"
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../ns/",
-    "${get_terragrunt_dir()}/../ns-triggermesh/",
-    "${get_terragrunt_dir()}/../helm-serving/",
-    "${get_terragrunt_dir()}/../../../eks-addons/"
+    "${get_terragrunt_dir()}/../../../../eks-addons/",
+    "${get_terragrunt_dir()}/../../../argocd/helm/",
+    "${get_terragrunt_dir()}/../../ns/",
+    "${get_terragrunt_dir()}/../../project/"
   ]
 }
 generate "provider" {
@@ -87,21 +99,48 @@ EOF
 # environments.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
+  uniqueName = "${local.name}-${local.codename}"
+
+  repository = "https://ot-container-kit.github.io/helm-charts/"
+
+  release          = "${local.codename}-redis"
+  chart            = "redis-cluster"
+  chart_version    = "0.14.3"
+  namespace        = "${local.name}-${local.codename}"
+  create_namespace = false
+  project          = "${local.name}-${local.codename}"
 
 
-  repository = "https://storage.googleapis.com/triggermesh-charts"
-  namespace  = "triggermesh"
-  app = { 
-    name             = "cw"
-    chart            = "triggermesh"
-    version          = "0.7.2"
-    create_namespace = false
-    deploy           = 1
-  }
+  values = yamldecode(<<EOF
+redisCluster:
+  clusterSize: 3
+  leader:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "kubernetes.io/arch"
+                  operator: "In"
+                  values: ["amd64"]
+                - key: "kubernetes.io/os"
+                  operator: "In"
+                  values: ["linux"]  
+  follower:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "kubernetes.io/arch"
+                  operator: "In"
+                  values: ["amd64"]
+                - key: "kubernetes.io/os"
+                  operator: "In"
+                  values: ["linux"]  
 
-  values = [<<EOF
-# image:
-#   tag: 5c2326b5159a98af5564942d1de8697f34652a85
-EOF    
-  ]
+
+EOF
+)
+
 }

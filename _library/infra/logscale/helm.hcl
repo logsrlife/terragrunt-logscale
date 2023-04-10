@@ -115,7 +115,7 @@ inputs = {
   values = yamldecode(<<EOF
 platform: aws
 humio:
-  kafkaPrefix: ops2-
+  kafkaPrefix: ops5-
   # External URI
   fqdn: logscale-${local.codename}.${local.domain_name}
   fqdnInputs: "logscale-${local.codename}-inputs.${local.domain_name}"
@@ -197,24 +197,24 @@ humio:
               - key: "kubernetes.io/os"
                 operator: "In"
                 values: ["linux"]  
-              - key: "workloadClass"
-                operator: "In"
-                values: ["compute"]      
-          - matchExpressions:
-              - key: "kubernetes.io/arch"
-                operator: "In"
-                values: ["amd64"]
-              - key: "kubernetes.io/os"
-                operator: "In"
-                values: ["linux"]
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchExpressions:
-              - key: app.kubernetes.io/instance
-                operator: In
-                values: ["${local.codename}-logscale"]
-          topologyKey: "kubernetes.io/hostname"
+              # - key: "workloadClass"
+              #   operator: "In"
+              #   values: ["compute"]      
+          # - matchExpressions:
+          #     - key: "kubernetes.io/arch"
+          #       operator: "In"
+          #       values: ["amd64"]
+          #     - key: "kubernetes.io/os"
+          #       operator: "In"
+          #       values: ["linux"]
+    # podAntiAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     - labelSelector:
+    #         matchExpressions:
+    #           - key: app.kubernetes.io/instance
+    #             operator: In
+    #             values: ["${local.codename}-logscale"]
+    #       topologyKey: "kubernetes.io/hostname"
   topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
@@ -290,30 +290,30 @@ humio:
                   - key: "kubernetes.io/os"
                     operator: "In"
                     values: ["linux"]  
-                  - key: "workloadClass"
-                    operator: "In"
-                    values: ["general","compute"]               
-              - matchExpressions:
-                  - key: "kubernetes.io/arch"
-                    operator: "In"
-                    values: ["amd64"]
-                  - key: "kubernetes.io/os"
-                    operator: "In"
-                    values: ["linux"]
+              #     - key: "workloadClass"
+              #       operator: "In"
+              #       values: ["general","compute"]               
+              # - matchExpressions:
+              #     - key: "kubernetes.io/arch"
+              #       operator: "In"
+              #       values: ["amd64"]
+              #     - key: "kubernetes.io/os"
+              #       operator: "In"
+              #       values: ["linux"]
                   # - key: "kubernetes.azure.com/agentpool"
                   #   operator: "In"
                   #   values: ["compute"]
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In
-                    values: ["${local.codename}-logscale"]
-                  - key: humio.com/node-pool
-                    operator: In
-                    values: ["${local.codename}-logscale-ingest-only"]
-              topologyKey: "kubernetes.io/hostname"
+        # podAntiAffinity:
+        #   requiredDuringSchedulingIgnoredDuringExecution:
+        #     - labelSelector:
+        #         matchExpressions:
+        #           - key: app.kubernetes.io/instance
+        #             operator: In
+        #             values: ["${local.codename}-logscale"]
+        #           - key: humio.com/node-pool
+        #             operator: In
+        #             values: ["${local.codename}-logscale-ingest-only"]
+        #       topologyKey: "kubernetes.io/hostname"
       topologySpreadConstraints:
             - maxSkew: 1
               topologyKey: topology.kubernetes.io/zone
@@ -353,40 +353,40 @@ humio:
                   - key: "kubernetes.io/os"
                     operator: "In"
                     values: ["linux"]  
-                  - key: "workloadClass"
-                    operator: "In"
-                    values: ["general","compute"]               
-              - matchExpressions:
-                  - key: "kubernetes.io/arch"
-                    operator: "In"
-                    values: ["amd64"]
-                  - key: "kubernetes.io/os"
-                    operator: "In"
-                    values: ["linux"]
+              #     - key: "workloadClass"
+              #       operator: "In"
+              #       values: ["general","compute"]               
+              # - matchExpressions:
+              #     - key: "kubernetes.io/arch"
+              #       operator: "In"
+              #       values: ["amd64"]
+              #     - key: "kubernetes.io/os"
+              #       operator: "In"
+              #       values: ["linux"]
                   # - key: "kubernetes.azure.com/agentpool"
                   #   operator: "In"
                   #   values: ["compute"]
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In
-                    values: ["${local.codename}-logscale"]
-                  - key: humio.com/node-pool
-                    operator: In
-                    values: ["${local.codename}-logscale-http-only"]
-              topologyKey: "kubernetes.io/hostname"
+        # podAntiAffinity:
+        #   requiredDuringSchedulingIgnoredDuringExecution:
+        #     - labelSelector:
+        #         matchExpressions:
+        #           - key: app.kubernetes.io/instance
+        #             operator: In
+        #             values: ["${local.codename}-logscale"]
+        #           - key: humio.com/node-pool
+        #             operator: In
+        #             values: ["${local.codename}-logscale-http-only"]
+        #       topologyKey: "kubernetes.io/hostname"
       topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: topology.kubernetes.io/zone
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchExpressions:
-                  - key: humio.com/node-pool
-                    operator: In
-                    values:
-                      - "${local.codename}-logscale-http-only"                     
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchExpressions:
+              - key: humio.com/node-pool
+                operator: In
+                values:
+                  - "${local.codename}-logscale-http-only"                     
 kafka:
   allowAutoCreate: false
   affinity:
@@ -400,9 +400,9 @@ kafka:
               - key: "kubernetes.io/os"
                 operator: "In"
                 values: ["linux"]
-              - key: "workloadClass"
-                operator: "In"
-                values: ["compute"]                 
+              # - key: "workloadClass"
+              #   operator: "In"
+              #   values: ["compute"]                 
           # - matchExpressions:
           #     - key: "kubernetes.io/arch"
           #       operator: "In"
@@ -427,25 +427,42 @@ kafka:
           #     - key: "kubernetes.io/os"
           #       operator: "In"
           #       values: ["linux"]                
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchExpressions:
-              - key: strimzi.io/component-type
-                operator: In
-                values:
-                  - "zookeeper"
-          topologyKey: kubernetes.io/hostname
+    # podAntiAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     - labelSelector:
+    #         matchExpressions:
+    #           - key: strimzi.io/component-type
+    #             operator: In
+    #             values:
+    #               - "zookeeper"
+    #       topologyKey: kubernetes.io/hostname
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
       whenUnsatisfiable: DoNotSchedule
       labelSelector:
         matchExpressions:
-          - key: strimzi.io/name
+          - key: app.kubernetes.io/name
             operator: In
             values:
-              - "${local.codename}-logscale-kafka"
+              - kafka
+          - key: app.kubernetes.io/part-of
+            operator: In
+            values:
+              - strimzi-${local.codename}-logscale
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+            - kafka
+        - key: app.kubernetes.io/part-of
+          operator: In
+          values:
+            - strimzi-${local.codename}-logscale
   tolerations:
     - key: "workloadClass"
       operator: "Equal"
@@ -463,10 +480,10 @@ kafka:
       memory: 4Gi
       #Note the following resources are expected to support 1-3 TB/Day however
       # storage is sized for 1TB/day increase the storage to match the expected load
-      cpu: 2
+      cpu: "2"
     limits:
       memory: 8Gi
-      cpu: 2
+      cpu: "2"
   #(total ingest uncompressed per day / 5 ) * 3 / ReplicaCount
   # ReplicaCount must be odd and greater than 3 should be divisible by AZ
   # Example: 1 TB/Day '1/5*3/3=205' 3 Replcias may not survive a zone failure at peak
@@ -491,9 +508,9 @@ zookeeper:
               - key: "kubernetes.io/os"
                 operator: "In"
                 values: ["linux"]
-              - key: "workloadClass"
-                operator: "In"
-                values: ["general","compute"]                 
+              # - key: "workloadClass"
+              #   operator: "In"
+              #   values: ["compute"]                 
           # - matchExpressions:
           #     - key: "kubernetes.io/arch"
           #       operator: "In"
@@ -503,7 +520,7 @@ zookeeper:
           #       values: ["linux"]  
           #     - key: "workloadClass"
           #       operator: "In"
-          #       values: ["general","compute"]                 
+          #       values: ["compute"]           
           - matchExpressions:
               - key: "kubernetes.io/arch"
                 operator: "In"
@@ -517,26 +534,43 @@ zookeeper:
           #       values: ["amd64"]
           #     - key: "kubernetes.io/os"
           #       operator: "In"
-          #       values: ["linux"]    
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchExpressions:
-              - key: strimzi.io/component-type
-                operator: In
-                values:
-                  - "kafka"
-          topologyKey: kubernetes.io/hostname
+          #       values: ["linux"]            
+    # podAntiAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     - labelSelector:
+    #         matchExpressions:
+    #           - key: strimzi.io/component-type
+    #             operator: In
+    #             values:
+    #               - "kafka"
+    #       topologyKey: kubernetes.io/hostname
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
       whenUnsatisfiable: DoNotSchedule
       labelSelector:
         matchExpressions:
-          - key: strimzi.io/name
+          - key: app.kubernetes.io/name
             operator: In
             values:
-              - "${local.codename}-logscale-zookeeper"
+              - zookeeper
+          - key: app.kubernetes.io/part-of
+            operator: In
+            values:
+              - strimzi-${local.codename}-logscale
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+            - zookeeper
+        - key: app.kubernetes.io/part-of
+          operator: In
+          values:
+            - strimzi-${local.codename}-logscale
   tolerations:
     - key: "workloadClass"
       operator: "Equal"

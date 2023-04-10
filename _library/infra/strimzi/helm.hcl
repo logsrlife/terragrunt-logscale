@@ -110,6 +110,25 @@ resources:
   limits:
     cpu: 1
     memory: 512Mi
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: "kubernetes.io/arch"
+              operator: "In"
+              values: ["arm64"]
+            - key: "kubernetes.io/os"
+              operator: "In"
+              values: ["linux"]  
+        # - matchExpressions:
+        #     - key: "kubernetes.io/arch"
+        #       operator: "In"
+        #       values: ["amd64"]
+        #     - key: "kubernetes.io/os"
+        #       operator: "In"
+        #       values: ["linux"]
+        
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone

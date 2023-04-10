@@ -55,9 +55,7 @@ dependency "eks" {
 }
 dependencies {
   paths = [
-    "${get_terragrunt_dir()}/../ns/",
-    "${get_terragrunt_dir()}/../ns-triggermesh/",
-    "${get_terragrunt_dir()}/../helm-serving/",
+    "${get_terragrunt_dir()}/../ns-redis-operator/",
     "${get_terragrunt_dir()}/../../../eks-addons/"
   ]
 }
@@ -89,19 +87,17 @@ EOF
 inputs = {
 
 
-  repository = "https://storage.googleapis.com/triggermesh-charts"
-  namespace  = "triggermesh"
+  repository = "https://ot-container-kit.github.io/helm-charts/"
+  namespace  = "redis-operator"
   app = { 
     name             = "cw"
-    chart            = "triggermesh"
-    version          = "0.7.2"
+    chart            = "redis-operator"
+    version          = "0.14.3"
     create_namespace = false
     deploy           = 1
   }
 
   values = [<<EOF
-# image:
-#   tag: 5c2326b5159a98af5564942d1de8697f34652a85
-EOF    
+EOF
   ]
 }

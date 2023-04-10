@@ -27,18 +27,6 @@ provider "kubernetes" {
     args = ["eks", "get-token", "--cluster-name", "${dependency.eks.outputs.eks_cluster_name}"]
   }
 }
-provider "kubectl" {
-  apply_retry_count      = 10
-  load_config_file       = false
-  host                   = "${dependency.eks.outputs.eks_endpoint}"
-  cluster_ca_certificate = base64decode("${dependency.eks.outputs.eks_cluster_certificate_authority_data}")
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "${dependency.eks.outputs.eks_cluster_name}"]
-  }
-}
 provider "helm" {
   kubernetes {
     host                   = "${dependency.eks.outputs.eks_endpoint}"
@@ -59,8 +47,8 @@ EOF
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
   source_module = {
-    base_url = "git::git@github.com:logscale-contrib/terraform-self-managed-logscale-aws-k8s-cluster-addons.git"
-    version  = "?ref=v1.7.0"
+    base_url = "git::git@github.com:logscale-contrib/terraform-self-managed-logscale-aws-k8s-image-swapper.git"
+    version  = "?ref=v1.1.1"
   }
   # Automatically load environment-level variables
   environment_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
@@ -96,6 +84,10 @@ dependency "vpc" {
 dependency "eks" {
   config_path = "${get_terragrunt_dir()}/../eks/"
 }
+dependency "eks-addons" {
+  config_path = "${get_terragrunt_dir()}/../eks-addons/"
+  skip_outputs = true
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module. This defines the parameters that are common across all
@@ -107,12 +99,6 @@ inputs = {
   eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
   eks_endpoint                           = dependency.eks.outputs.eks_endpoint
   eks_cluster_certificate_authority_data = dependency.eks.outputs.eks_cluster_certificate_authority_data
-  eks_oidc_provider_arn                  = dependency.eks.outputs.eks_oidc_provider_arn
-  cluster_version                        = dependency.eks.outputs.cluster_version
-  karpenter_queue_name                   = dependency.eks.outputs.karpenter_queue_name
-  karpenter_instance_profile_name        = dependency.eks.outputs.karpenter_instance_profile_name
-  karpenter_irsa_arn                     = dependency.eks.outputs.karpenter_irsa_arn
-  vpc_id                                 = dependency.vpc.outputs.vpc_id
+  eks_cluster_oidc_issuer_url                  = dependency.eks.outputs.eks_cluster_oidc_issuer_url
   region                                 = local.aws_region
-  zone_id                                = local.zone_id
 }

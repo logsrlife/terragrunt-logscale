@@ -100,10 +100,10 @@ inputs = {
     deploy           = 1
   }
   values = [<<EOF
-operator:
-  image:
-    repository: ghcr.io/ryanfaircloth/humio-operator/humio-operator
-    tag: 92283ade36eb4e1846196fde3f66af882bb957c6
+# operator:
+#   image:
+#     repository: ghcr.io/ryanfaircloth/humio-operator/humio-operator
+#     tag: 92283ade36eb4e1846196fde3f66af882bb957c6
 prometheus:
   serviceMonitor:
     enabled: true  
