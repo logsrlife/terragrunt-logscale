@@ -106,7 +106,7 @@ inputs = {
   release          = local.codename
   chart            = "logscale"
   # chart_version    = "v6.0.0"
-  chart_version    = "v7.0.0-next.9"
+  chart_version    = "v7.0.0-next.13"
   namespace        = "${local.name}-${local.codename}"
   create_namespace = false
   project          = "${local.name}-${local.codename}"
@@ -115,7 +115,6 @@ inputs = {
   values = yamldecode(<<EOF
 platform: aws
 humio:
-  kafkaPrefix: it2-
   # External URI
   fqdn: logscale-${local.codename}.${local.domain_name}
   fqdnInputs: "logscale-${local.codename}-inputs.${local.domain_name}"
@@ -146,6 +145,7 @@ humio:
   kafka:
     manager: strimzi
     prefixEnable: true
+    topicPrefix: it2-
     strimziCluster: "${local.codename}-logscale"
     # externalKafkaHostname: "${local.codename}-logscale-kafka-bootstrap:9092"
 
@@ -157,13 +157,13 @@ humio:
     # tag: 1.78.0--SNAPSHOT--build-371116--SHA-82be774e353aeebd8e5cbfa88aef55cb8f5960a0
     # tag: 1.79.0--SNAPSHOT--build-381031--SHA-3d907a8c1c8e9f1eab28ada26f6cc0f83b6c80d3
     # tag: 1.82.0--SNAPSHOT--build-392060--SHA-3d151632092e4c2a554df0d24147b749219def02
-    tag: 1.85.0--SNAPSHOT--build-404564--SHA-c2b36c72f3da2c2d6f6cc4f711a0f5210f652e71
+    tag: 1.86.0--SNAPSHOT--build-408198--SHA-5046da866e870c47ae14ada5faa66c2bbb0bdf22
   # Primary Node pool used for digest/storage
   nodeCount: 3
   #In general for these node requests and limits should match
   resources:
     requests:
-      memory: 8Gi
+      memory: 4Gi
       cpu: 2
     limits:
       memory: 8Gi
@@ -171,7 +171,7 @@ humio:
 
   digestPartitionsCount: 24
   storagePartitionsCount: 6
-  targetReplicationFactor: 2
+  targetReplicationFactor: 1
 
   serviceAccount:
     name: "logscale-${local.codename}"
@@ -269,10 +269,10 @@ humio:
       resources:
         limits:
           cpu: "2"
-          memory: 6Gi
+          memory: 3Gi
         requests:
-          cpu: "2"
-          memory: 4Gi
+          cpu: "1"
+          memory: 2Gi
       tolerations:
         - key: "workloadClass"
           operator: "Equal"
@@ -331,8 +331,8 @@ humio:
       nodeCount: 3
       resources:
         limits:
-          cpu: "2"
-          memory: 6Gi
+          cpu: "4"
+          memory: 4Gi
         requests:
           cpu: "2"
           memory: 4Gi
@@ -399,46 +399,11 @@ kafka:
           - matchExpressions:
               - key: "kubernetes.io/arch"
                 operator: "In"
-                values: ["arm64"]
+                values: ["amd64"] # values: ["arm64"]
               - key: "kubernetes.io/os"
                 operator: "In"
                 values: ["linux"]
-              # - key: "workloadClass"
-              #   operator: "In"
-              #   values: ["compute"]                 
-          # - matchExpressions:
-          #     - key: "kubernetes.io/arch"
-          #       operator: "In"
-          #       values: ["amd64"]
-          #     - key: "kubernetes.io/os"
-          #       operator: "In"
-          #       values: ["linux"]  
-          #     - key: "workloadClass"
-          #       operator: "In"
-          #       values: ["compute"]           
-          # - matchExpressions:
-          #     - key: "kubernetes.io/arch"
-          #       operator: "In"
-          #       values: ["arm64"]
-          #     - key: "kubernetes.io/os"
-          #       operator: "In"
-          #       values: ["linux"]
-          # - matchExpressions:
-          #     - key: "kubernetes.io/arch"
-          #       operator: "In"
-          #       values: ["amd64"]
-          #     - key: "kubernetes.io/os"
-          #       operator: "In"
-          #       values: ["linux"]                      
-    # podAntiAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #     - labelSelector:
-    #         matchExpressions:
-    #           - key: strimzi.io/component-type
-    #             operator: In
-    #             values:
-    #               - "zookeeper"
-    #       topologyKey: kubernetes.io/hostname
+
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
@@ -480,13 +445,13 @@ kafka:
   resources:
     requests:
       # Increase the memory as needed to support more than 5/TB day
-      memory: 4Gi
+      memory: 3Gi
       #Note the following resources are expected to support 1-3 TB/Day however
       # storage is sized for 1TB/day increase the storage to match the expected load
-      cpu: 2
+      cpu: "250m"
     limits:
-      memory: 4Gi
-      cpu: 2
+      memory: 6Gi
+      cpu: "2"
   #(total ingest uncompressed per day / 5 ) * 3 / ReplicaCount
   # ReplicaCount must be odd and greater than 3 should be divisible by AZ
   # Example: 1 TB/Day '1/5*3/3=205' 3 Replcias may not survive a zone failure at peak
@@ -507,46 +472,11 @@ zookeeper:
           - matchExpressions:
               - key: "kubernetes.io/arch"
                 operator: "In"
-                values: ["arm64"]
+                values: ["amd64"] # values: ["arm64"]
               - key: "kubernetes.io/os"
                 operator: "In"
                 values: ["linux"]
-          #     - key: "workloadClass"
-          #       operator: "In"
-          #       values: ["compute"]                 
-          # - matchExpressions:
-          #     - key: "kubernetes.io/arch"
-          #       operator: "In"
-          #       values: ["amd64"]
-          #     - key: "kubernetes.io/os"
-          #       operator: "In"
-          #       values: ["linux"]  
-          #     - key: "workloadClass"
-          #       operator: "In"
-          #       values: ["compute"]           
-          # - matchExpressions:
-          #     - key: "kubernetes.io/arch"
-          #       operator: "In"
-          #       values: ["arm64"]
-          #     - key: "kubernetes.io/os"
-          #       operator: "In"
-          #       values: ["linux"]
-          # - matchExpressions:
-          #     - key: "kubernetes.io/arch"
-          #       operator: "In"
-          #       values: ["amd64"]
-          #     - key: "kubernetes.io/os"
-          #       operator: "In"
-          #       values: ["linux"]                
-    # podAntiAffinity:
-    #   requiredDuringSchedulingIgnoredDuringExecution:
-    #     - labelSelector:
-    #         matchExpressions:
-    #           - key: strimzi.io/component-type
-    #             operator: In
-    #             values:
-    #               - "kafka"
-    #       topologyKey: kubernetes.io/hostname
+          
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
@@ -581,11 +511,11 @@ zookeeper:
       effect: "NoSchedule"      
   resources:
     requests:
-      memory: 1Gi
-      cpu: "250m"
+      memory: 500Mi
+      cpu: "100m"
     limits:
-      memory: 2Gi
-      cpu: "1"
+      memory: 1Gi
+      cpu: "500m"
   storage:
     deleteClaim: true
     type: persistent-claim

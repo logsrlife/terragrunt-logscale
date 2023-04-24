@@ -117,7 +117,7 @@ affinity:
         - matchExpressions:
             - key: "kubernetes.io/arch"
               operator: "In"
-              values: ["arm64"]
+              values: ["amd64"] # values: ["arm64"]
             - key: "kubernetes.io/os"
               operator: "In"
               values: ["linux"]  

@@ -94,7 +94,7 @@ inputs = {
   app = { 
     name             = "cw"
     chart            = "knative-deployment"
-    version          = "1.0.2"
+    version          = "1.1.2"
     create_namespace = false
     deploy           = 1
   }

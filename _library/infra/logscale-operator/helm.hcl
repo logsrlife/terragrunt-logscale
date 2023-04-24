@@ -107,7 +107,13 @@ inputs = {
 prometheus:
   serviceMonitor:
     enabled: true  
-
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 1
+  limits:
+    memory: 1Gi
+    cpu: 1
 EOF    
   ]
 

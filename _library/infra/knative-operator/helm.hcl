@@ -92,7 +92,7 @@ inputs = {
   app = { 
     name             = "cw"
     chart            = "knative-operator"
-    version          = "1.4.1"
+    version          = "1.5.2"
     create_namespace = false
     deploy           = 1
   }
